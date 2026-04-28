@@ -30,9 +30,9 @@ export default function SettingsPage() {
   if (!settings) return null
 
   return (
-    <div className="flex-1 p-4">
+    <div className="p-4 md:p-0 md:max-w-2xl">
       <div className="mb-5">
-        <h1 className="text-2xl font-bold text-white">Settings</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-white">Settings</h1>
         <p className="text-golf-500 text-sm">Configure your preferences</p>
       </div>
 

@@ -50,52 +50,54 @@ export default function ClubsPage() {
   }))
 
   return (
-    <div className="flex-1 p-4">
+    <div className="p-4 md:p-0">
       <div className="mb-5">
-        <h1 className="text-2xl font-bold text-white">Select Clubs</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-white">Select Clubs</h1>
         <p className="text-golf-500 text-sm mt-1">
           <span className={activeIds.size >= 13 ? 'text-gold-400 font-semibold' : 'text-golf-400'}>
             {activeIds.size}/13
           </span>
-          {' '}clubs selected
+          {' '}clubs selected · tap to add or remove
         </p>
       </div>
 
-      {grouped.map(({ type, label, clubs: list }) => (
-        <div key={type} className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-golf-400 text-xs font-bold uppercase tracking-widest">{label}</span>
-            <div className="flex-1 h-px bg-golf-800" />
+      <div className="md:grid md:grid-cols-2 md:gap-6">
+        {grouped.map(({ type, label, clubs: list }) => (
+          <div key={type} className="mb-6 md:mb-0">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-golf-400 text-xs font-bold uppercase tracking-widest">{label}</span>
+              <div className="flex-1 h-px bg-golf-800" />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {list.map(club => {
+                const active = activeIds.has(club.id)
+                const disabled = !active && activeIds.size >= 13
+                return (
+                  <button
+                    key={club.id}
+                    onClick={() => toggle(club)}
+                    disabled={disabled || saving === club.id}
+                    className={`rounded-2xl border p-4 text-left transition-all ${
+                      active
+                        ? 'bg-golf-700 border-golf-400 text-white'
+                        : disabled
+                        ? 'bg-golf-900 border-golf-800 text-golf-700 cursor-not-allowed'
+                        : 'bg-golf-900 border-golf-700 text-golf-300 hover:bg-golf-800 active:scale-95'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold">{club.name}</span>
+                      <span className={`text-lg ${active ? 'text-golf-300' : 'text-golf-700'}`}>
+                        {active ? '✓' : '+'}
+                      </span>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            {list.map(club => {
-              const active = activeIds.has(club.id)
-              const disabled = !active && activeIds.size >= 13
-              return (
-                <button
-                  key={club.id}
-                  onClick={() => toggle(club)}
-                  disabled={disabled || saving === club.id}
-                  className={`rounded-2xl border p-4 text-left transition-all ${
-                    active
-                      ? 'bg-golf-700 border-golf-400 text-white'
-                      : disabled
-                      ? 'bg-golf-900 border-golf-800 text-golf-700 cursor-not-allowed'
-                      : 'bg-golf-900 border-golf-700 text-golf-300 active:scale-95'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold">{club.name}</span>
-                    <span className={`text-lg ${active ? 'text-golf-300' : 'text-golf-700'}`}>
-                      {active ? '✓' : '+'}
-                    </span>
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   )
 }

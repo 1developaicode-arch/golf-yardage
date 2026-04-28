@@ -59,9 +59,9 @@ export default function LogPage() {
   const unit = unitLabel(settings.units)
 
   return (
-    <div className="flex-1 p-4">
+    <div className="p-4 md:p-0">
       <div className="mb-5">
-        <h1 className="text-2xl font-bold text-white">Log a Shot</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-white">Log a Shot</h1>
         <p className="text-golf-500 text-sm">Record your distance</p>
       </div>
 
@@ -72,7 +72,9 @@ export default function LogPage() {
           <p className="text-sm mt-1">Add clubs first from the Clubs tab</p>
         </div>
       ) : (
-        <>
+        <div className="md:flex md:gap-6">
+        {/* Left column: form */}
+        <div className="md:flex-1">
           {/* Club selector */}
           <div className="mb-4">
             <label className="text-golf-400 text-xs font-bold uppercase tracking-wider mb-2 block">Club</label>
@@ -169,32 +171,34 @@ export default function LogPage() {
             {success ? '✓ Shot Added!' : saving ? 'Saving…' : 'Add Shot'}
           </button>
 
-          {/* History */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-golf-400 text-xs font-bold uppercase tracking-widest">History</span>
-              <div className="flex-1 h-px bg-golf-800" />
-            </div>
-            {shots.length === 0 ? (
-              <p className="text-golf-600 text-sm text-center py-4">No shots logged yet</p>
-            ) : (
-              <div className="space-y-2">
-                {shots.slice(0, 30).map(shot => (
-                  <div key={shot.id} className="bg-golf-900 border border-golf-800 rounded-xl px-4 py-3 flex items-center justify-between">
-                    <div>
-                      <span className="text-white font-semibold">{shot.club?.name}</span>
-                      <span className="text-golf-500 text-sm ml-2">{shot.shot_type}</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-golf-300 font-bold">{convertDistance(shot.distance_yards, settings.units)} {unit}</span>
-                      <p className="text-golf-600 text-xs">{new Date(shot.created_at).toLocaleDateString()}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+        </div>{/* end left col */}
+
+        {/* Right column: history */}
+        <div className="md:w-96 md:flex-shrink-0 mt-6 md:mt-0">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-golf-400 text-xs font-bold uppercase tracking-widest">History</span>
+            <div className="flex-1 h-px bg-golf-800" />
           </div>
-        </>
+          {shots.length === 0 ? (
+            <p className="text-golf-600 text-sm text-center py-4">No shots logged yet</p>
+          ) : (
+            <div className="space-y-2 md:max-h-[calc(100vh-160px)] md:overflow-y-auto md:pr-1">
+              {shots.slice(0, 50).map(shot => (
+                <div key={shot.id} className="bg-golf-900 border border-golf-800 rounded-xl px-4 py-3 flex items-center justify-between">
+                  <div>
+                    <span className="text-white font-semibold">{shot.club?.name}</span>
+                    <span className="text-golf-500 text-sm ml-2">{shot.shot_type}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-golf-300 font-bold">{convertDistance(shot.distance_yards, settings.units)} {unit}</span>
+                    <p className="text-golf-600 text-xs">{new Date(shot.created_at).toLocaleDateString()}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        </div>
       )}
     </div>
   )

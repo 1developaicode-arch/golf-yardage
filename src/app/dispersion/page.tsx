@@ -57,9 +57,9 @@ export default function DispersionPage() {
     : '–'
 
   return (
-    <div className="flex-1 p-4">
+    <div className="p-4 md:p-0">
       <div className="mb-5">
-        <h1 className="text-2xl font-bold text-white">Dispersion</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-white">Dispersion</h1>
         <p className="text-golf-500 text-sm">Shot spread by club</p>
       </div>
 
