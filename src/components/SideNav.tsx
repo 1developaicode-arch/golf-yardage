@@ -13,14 +13,14 @@ const tabs = [
 export default function SideNav() {
   const pathname = usePathname()
   return (
-    <aside className="hidden md:flex flex-col w-64 min-h-screen bg-golf-900 border-r border-golf-700 fixed top-0 left-0 z-40">
+    <aside className="hidden md:flex flex-col w-64 min-h-screen bg-white border-r border-border fixed top-0 left-0 z-40 shadow-sm">
       {/* Logo */}
-      <div className="px-6 py-7 border-b border-golf-700">
+      <div className="px-6 py-7 border-b border-border">
         <div className="flex items-center gap-3">
           <span className="text-3xl">⛳</span>
           <div>
-            <h1 className="text-white font-bold text-lg leading-tight">Golf Yardage</h1>
-            <p className="text-golf-500 text-xs">Smart caddie</p>
+            <h1 className="text-text-primary font-bold text-lg leading-tight">Golf Yardage</h1>
+            <p className="text-text-muted text-xs">Smart caddie</p>
           </div>
         </div>
       </div>
@@ -35,24 +35,23 @@ export default function SideNav() {
               href={tab.href}
               className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all group ${
                 active
-                  ? 'bg-golf-700 text-white'
-                  : 'text-golf-500 hover:bg-golf-800 hover:text-golf-200'
+                  ? 'bg-golf-50 text-golf-900'
+                  : 'text-text-secondary hover:bg-surface-2 hover:text-text-primary'
               }`}
             >
               <span className="text-xl w-7 text-center">{tab.icon}</span>
               <div>
-                <p className={`font-semibold text-sm leading-tight ${active ? 'text-white' : ''}`}>{tab.label}</p>
-                <p className="text-golf-600 text-xs group-hover:text-golf-500">{tab.desc}</p>
+                <p className={`font-semibold text-sm leading-tight ${active ? 'text-golf-900' : ''}`}>{tab.label}</p>
+                <p className="text-text-muted text-xs">{tab.desc}</p>
               </div>
-              {active && <span className="ml-auto w-1.5 h-6 bg-golf-400 rounded-full" />}
+              {active && <span className="ml-auto w-1.5 h-6 bg-golf-600 rounded-full" />}
             </Link>
           )
         })}
       </nav>
 
-      {/* Footer */}
-      <div className="px-6 py-4 border-t border-golf-700">
-        <p className="text-golf-700 text-xs">Golf Yardage v1.0</p>
+      <div className="px-6 py-4 border-t border-border">
+        <p className="text-text-muted text-xs">Golf Yardage v1.0</p>
       </div>
     </aside>
   )

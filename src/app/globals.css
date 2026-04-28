@@ -3,24 +3,39 @@
 @theme inline {
   --font-outfit: var(--font-outfit);
 
-  --color-golf-950: #030f05;
-  --color-golf-900: #071a09;
-  --color-golf-800: #0d2e10;
-  --color-golf-700: #164a1a;
-  --color-golf-600: #1e6325;
-  --color-golf-500: #267d2e;
-  --color-golf-400: #3da648;
-  --color-golf-300: #65c46e;
-  --color-golf-200: #9adaa0;
-  --color-golf-100: #cceecf;
-  --color-golf-50:  #edf8ee;
+  /* Brand greens */
+  --color-golf-950: #012a0a;
+  --color-golf-900: #014010;
+  --color-golf-800: #015c17;
+  --color-golf-700: #017820;
+  --color-golf-600: #019428;
+  --color-golf-500: #01b030;
+  --color-golf-400: #01cc38;
+  --color-golf-300: #34d85a;
+  --color-golf-200: #6ee48a;
+  --color-golf-100: #a8f0ba;
+  --color-golf-50:  #e0fae6;
 
-  --color-gold-400: #f0c040;
-  --color-gold-300: #f5d070;
+  /* UI surface colors */
+  --color-surface:     #ffffff;
+  --color-surface-2:   #f4f7f4;
+  --color-surface-3:   #e8f0e9;
+  --color-border:      #c8deca;
+  --color-border-dark: #9abf9e;
+
+  /* Text */
+  --color-text-primary:   #0a1f0d;
+  --color-text-secondary: #3a6b42;
+  --color-text-muted:     #6a9b72;
+
+  /* Gold for highlights */
+  --color-gold-500: #d4900a;
+  --color-gold-400: #f0a820;
+  --color-gold-100: #fef3d0;
 }
 
 body {
-  background: var(--color-golf-950);
-  color: #f1f5f9;
+  background: var(--color-surface-2);
+  color: var(--color-text-primary);
   font-family: var(--font-outfit), sans-serif;
 }

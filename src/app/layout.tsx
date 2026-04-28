@@ -17,8 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-full bg-golf-950 font-outfit antialiased">
         <SideNav />
         {/* Desktop: offset content by sidebar width */}
-        <div className="md:ml-64 min-h-screen flex flex-col">
-          {/* Mobile: constrain width and add bottom padding */}
+        <div className="md:ml-64 min-h-screen flex flex-col bg-surface-2">
           <div className="max-w-md mx-auto w-full pb-20 md:max-w-none md:pb-0 md:p-8 flex-1">
             {children}
           </div>
