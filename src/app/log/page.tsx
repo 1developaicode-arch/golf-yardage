@@ -59,8 +59,12 @@ export default function LogPage() {
   const isWedge = selectedEntry?.club?.type === 'wedge'
   const availableTypes = (!settings.partial_shots && !isWedge) ? (['full'] as ShotType[]) : SHOT_TYPES
 
-  // History filtered to selected club only
-  const clubHistory = shots.filter(s => s.club_id === selectedClub)
+  // History filtered to selected club; hide partial shots for non-wedge clubs when setting is off
+  const clubHistory = shots.filter(s => {
+    if (s.club_id !== selectedClub) return false
+    if (!settings.partial_shots && !isWedge && s.shot_type !== 'full') return false
+    return true
+  })
 
   return (
     <div className="p-4 md:p-0">
