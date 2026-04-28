@@ -67,6 +67,10 @@ export default function DispersionPage() {
 
   const selectedClubName = bag.find(b => b.club_id === selectedClub)?.club?.name ?? ''
 
+  // Always keep target (x=0) centered — use the largest absolute x value, minimum 20
+  const maxAbsX = Math.max(20, ...chartData.map(d => Math.abs(d.x)))
+  const xDomain: [number, number] = [-maxAbsX, maxAbsX]
+
   return (
     <div className="p-4 md:p-0">
       <div className="mb-5">
@@ -140,6 +144,7 @@ export default function DispersionPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#c8deca" />
                 <XAxis
                   type="number" dataKey="x" name="Lateral" unit={unit}
+                  domain={xDomain}
                   tick={{ fill: '#3a6b42', fontSize: 11 }}
                   label={{ value: `← Left    Right → (${unit})`, position: 'insideBottom', offset: -15, fill: '#3a6b42', fontSize: 11 }}
                 />
