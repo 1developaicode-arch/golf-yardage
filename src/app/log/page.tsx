@@ -55,6 +55,10 @@ export default function LogPage() {
   const unit = unitLabel(settings.units)
   const labels = shotLabels(settings)
 
+  const selectedEntry = bag.find(b => b.club_id === selectedClub)
+  const isWedge = selectedEntry?.club?.type === 'wedge'
+  const availableTypes = (!settings.partial_shots && !isWedge) ? (['full'] as ShotType[]) : SHOT_TYPES
+
   // History filtered to selected club only
   const clubHistory = shots.filter(s => s.club_id === selectedClub)
 
@@ -80,7 +84,10 @@ export default function LogPage() {
               <label className="text-text-secondary text-xs font-bold uppercase tracking-wider mb-2 block">Club</label>
               <div className="flex flex-wrap gap-2">
                 {bag.map(entry => (
-                  <button key={entry.club_id} onClick={() => setSelectedClub(entry.club_id)}
+                  <button key={entry.club_id} onClick={() => {
+                    setSelectedClub(entry.club_id)
+                    if (!settings.partial_shots && entry.club?.type !== 'wedge') setSelectedType('full')
+                  }}
                     className={`rounded-xl px-3 py-2 text-sm font-semibold border-2 transition-all ${
                       selectedClub === entry.club_id
                         ? 'bg-golf-600 border-golf-600 text-white'
@@ -95,8 +102,8 @@ export default function LogPage() {
             {/* Shot type */}
             <div className="mb-4">
               <label className="text-text-secondary text-xs font-bold uppercase tracking-wider mb-2 block">Shot Type</label>
-              <div className="grid grid-cols-4 gap-2">
-                {SHOT_TYPES.map(st => (
+              <div className={`grid gap-2 ${availableTypes.length === 1 ? 'grid-cols-1' : availableTypes.length === 2 ? 'grid-cols-2' : 'grid-cols-4'}`}>
+                {availableTypes.map(st => (
                   <button key={st} onClick={() => setSelectedType(st)}
                     className={`rounded-xl py-3 font-bold border-2 transition-all ${
                       selectedType === st

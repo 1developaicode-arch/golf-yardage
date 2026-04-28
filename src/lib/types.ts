@@ -43,6 +43,7 @@ export interface Settings {
   shot_label_3q: string
   shot_label_half: string
   shot_label_1q: string
+  partial_shots: boolean
 }
 
 export function shotLabels(s: Settings): Record<ShotType, string> {

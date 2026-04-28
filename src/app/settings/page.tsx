@@ -93,6 +93,19 @@ export default function SettingsPage() {
           </div>
         </Section>
 
+        <Section label="Partial Shots">
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-text-primary font-medium">Track partial shots for irons &amp; woods</span>
+              <p className="text-text-muted text-xs mt-0.5">When off, only Full shots are logged for non-wedge clubs. Wedges always use all 4 shot types.</p>
+            </div>
+            <button onClick={() => update({ partial_shots: !settings.partial_shots })}
+              className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ml-4 ${settings.partial_shots ? 'bg-golf-500' : 'bg-border'}`}>
+              <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${settings.partial_shots ? 'left-7' : 'left-1'}`} />
+            </button>
+          </div>
+        </Section>
+
         <Section label="Averaging Method">
           <div className="space-y-2">
             {[

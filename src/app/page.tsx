@@ -42,6 +42,7 @@ export default function BagView() {
   const clubs = bag.filter(b => b.club?.type !== 'wedge')
   const wedges = bag.filter(b => b.club?.type === 'wedge')
   const labels = shotLabels(settings)
+  const clubShotTypes = settings.partial_shots ? SHOT_TYPES : (['full'] as ShotType[])
 
   if (fullscreen) {
     return (
@@ -55,7 +56,7 @@ export default function BagView() {
             ✕ Exit Fullscreen
           </button>
         </div>
-        <FullscreenTable entries={bag} shots={shots} settings={settings} getAvg={getAvg} isMatch={isMatch} unit={unit} labels={labels} />
+        <FullscreenTable entries={bag} shots={shots} settings={settings} getAvg={getAvg} isMatch={isMatch} unit={unit} labels={labels} clubShotTypes={clubShotTypes} />
       </div>
     )
   }
@@ -123,8 +124,8 @@ export default function BagView() {
             </div>
           ) : (
             <>
-              <ClubGroup label="Clubs" entries={clubs} shots={shots} settings={settings} getAvg={getAvg} isMatch={isMatch} unit={unit} labels={labels} />
-              <ClubGroup label="Wedges" entries={wedges} shots={shots} settings={settings} getAvg={getAvg} isMatch={isMatch} unit={unit} labels={labels} />
+              <ClubGroup label="Clubs" entries={clubs} shots={shots} settings={settings} getAvg={getAvg} isMatch={isMatch} unit={unit} labels={labels} shotTypes={clubShotTypes} />
+              <ClubGroup label="Wedges" entries={wedges} shots={shots} settings={settings} getAvg={getAvg} isMatch={isMatch} unit={unit} labels={labels} shotTypes={SHOT_TYPES} />
             </>
           )}
         </div>
@@ -133,11 +134,11 @@ export default function BagView() {
   )
 }
 
-function ClubGroup({ label, entries, getAvg, isMatch, unit, settings, labels }: {
+function ClubGroup({ label, entries, getAvg, isMatch, unit, settings, labels, shotTypes }: {
   label: string; entries: BagEntry[]; shots: Shot[]; settings: Settings
   getAvg: (id: string, type: ShotType) => number | null
   isMatch: (avg: number | null) => boolean; unit: string
-  labels: Record<ShotType, string>
+  labels: Record<ShotType, string>; shotTypes: ShotType[]
 }) {
   if (entries.length === 0) return null
   return (
@@ -153,17 +154,17 @@ function ClubGroup({ label, entries, getAvg, isMatch, unit, settings, labels }: 
           <thead>
             <tr className="border-b border-border bg-surface-2">
               <th className="text-left px-5 py-3 text-text-secondary text-xs font-bold uppercase tracking-wider">Club</th>
-              {SHOT_TYPES.map(st => <th key={st} className="text-center px-5 py-3 text-text-secondary text-xs font-bold uppercase tracking-wider">{labels[st]}</th>)}
+              {shotTypes.map(st => <th key={st} className="text-center px-5 py-3 text-text-secondary text-xs font-bold uppercase tracking-wider">{labels[st]}</th>)}
             </tr>
           </thead>
           <tbody>
             {entries.map((entry, i) => {
               const club = entry.club!
-              const anyMatch = SHOT_TYPES.some(st => isMatch(getAvg(club.id, st)))
+              const anyMatch = shotTypes.some(st => isMatch(getAvg(club.id, st)))
               return (
                 <tr key={entry.id} className={`border-b border-border last:border-0 ${anyMatch ? 'bg-gold-100' : i % 2 === 0 ? 'bg-white' : 'bg-surface-2'}`}>
                   <td className={`px-5 py-3.5 font-bold ${anyMatch ? 'text-gold-500' : 'text-text-primary'}`}>{club.name}</td>
-                  {SHOT_TYPES.map(st => {
+                  {shotTypes.map(st => {
                     const avg = getAvg(club.id, st)
                     const match = isMatch(avg)
                     const display = avg !== null ? convertDistance(avg, settings.units) : null
@@ -182,27 +183,27 @@ function ClubGroup({ label, entries, getAvg, isMatch, unit, settings, labels }: 
 
       {/* Mobile cards */}
       <div className="md:hidden space-y-2">
-        {entries.map(entry => <ClubCard key={entry.id} entry={entry} getAvg={getAvg} isMatch={isMatch} unit={unit} settings={settings} labels={labels} />)}
+        {entries.map(entry => <ClubCard key={entry.id} entry={entry} getAvg={getAvg} isMatch={isMatch} unit={unit} settings={settings} labels={labels} shotTypes={shotTypes} />)}
       </div>
     </div>
   )
 }
 
-function ClubCard({ entry, getAvg, isMatch, unit, settings, labels }: {
+function ClubCard({ entry, getAvg, isMatch, unit, settings, labels, shotTypes }: {
   entry: BagEntry; getAvg: (id: string, type: ShotType) => number | null
   isMatch: (avg: number | null) => boolean; unit: string; settings: Settings
-  labels: Record<ShotType, string>
+  labels: Record<ShotType, string>; shotTypes: ShotType[]
 }) {
   const club = entry.club!
-  const anyMatch = SHOT_TYPES.some(st => isMatch(getAvg(club.id, st)))
+  const anyMatch = shotTypes.some(st => isMatch(getAvg(club.id, st)))
   return (
     <div className={`rounded-2xl border p-3 shadow-sm ${anyMatch ? 'bg-gold-100 border-gold-400' : 'bg-white border-border'}`}>
       <div className="flex items-center justify-between mb-2">
         <span className={`font-bold text-base ${anyMatch ? 'text-gold-500' : 'text-text-primary'}`}>{club.name}</span>
         <span className="text-text-muted text-xs capitalize">{club.type}</span>
       </div>
-      <div className="grid grid-cols-4 gap-1">
-        {SHOT_TYPES.map(st => {
+      <div className={`grid gap-1 ${shotTypes.length === 1 ? 'grid-cols-1' : shotTypes.length === 2 ? 'grid-cols-2' : 'grid-cols-4'}`}>
+        {shotTypes.map(st => {
           const avg = getAvg(club.id, st)
           const match = isMatch(avg)
           const display = avg !== null ? convertDistance(avg, settings.units) : null
@@ -219,17 +220,17 @@ function ClubCard({ entry, getAvg, isMatch, unit, settings, labels }: {
   )
 }
 
-function FullscreenTable({ entries, getAvg, isMatch, unit, settings, labels }: {
+function FullscreenTable({ entries, getAvg, isMatch, unit, settings, labels, clubShotTypes }: {
   entries: BagEntry[]; shots: Shot[]; settings: Settings
   getAvg: (id: string, type: ShotType) => number | null
   isMatch: (avg: number | null) => boolean; unit: string
-  labels: Record<ShotType, string>
+  labels: Record<ShotType, string>; clubShotTypes: ShotType[]
 }) {
   const clubs = entries.filter(b => b.club?.type !== 'wedge')
   const wedges = entries.filter(b => b.club?.type === 'wedge')
   return (
     <div className="space-y-8 max-w-3xl mx-auto">
-      {[{ label: 'Clubs', list: clubs }, { label: 'Wedges', list: wedges }].map(({ label, list }) =>
+      {[{ label: 'Clubs', list: clubs, types: clubShotTypes }, { label: 'Wedges', list: wedges, types: SHOT_TYPES }].map(({ label, list, types }) =>
         list.length > 0 ? (
           <div key={label}>
             <p className="text-text-secondary text-xs font-bold uppercase tracking-widest mb-3">{label}</p>
@@ -238,17 +239,17 @@ function FullscreenTable({ entries, getAvg, isMatch, unit, settings, labels }: {
                 <thead>
                   <tr className="border-b border-border bg-surface-2">
                     <th className="text-left px-5 py-3 text-text-secondary text-xs font-bold uppercase tracking-wider">Club</th>
-                    {SHOT_TYPES.map(st => <th key={st} className="text-center px-5 py-3 text-text-secondary text-xs font-bold uppercase tracking-wider">{labels[st]}</th>)}
+                    {types.map(st => <th key={st} className="text-center px-5 py-3 text-text-secondary text-xs font-bold uppercase tracking-wider">{labels[st]}</th>)}
                   </tr>
                 </thead>
                 <tbody>
                   {list.map(entry => {
                     const club = entry.club!
-                    const anyMatch = SHOT_TYPES.some(st => isMatch(getAvg(club.id, st)))
+                    const anyMatch = types.some(st => isMatch(getAvg(club.id, st)))
                     return (
                       <tr key={entry.id} className={`border-b border-border last:border-0 ${anyMatch ? 'bg-gold-100' : 'bg-white'}`}>
                         <td className={`px-5 py-4 font-bold text-xl ${anyMatch ? 'text-gold-500' : 'text-text-primary'}`}>{club.name}</td>
-                        {SHOT_TYPES.map(st => {
+                        {types.map(st => {
                           const avg = getAvg(club.id, st)
                           const match = isMatch(avg)
                           const display = avg !== null ? convertDistance(avg, settings.units) : null
