@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const tabs = [
-  { href: '/',           label: 'Bag',       icon: '🏌️' },
+  { href: '/',           label: 'Yardages',  icon: '🏌️' },
   { href: '/log',        label: 'Log Shot',  icon: '📍' },
   { href: '/clubs',      label: 'Clubs',     icon: '🏒' },
   { href: '/dispersion', label: 'Dispersion',icon: '🎯' },

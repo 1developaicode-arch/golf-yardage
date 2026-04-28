@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const tabs = [
-  { href: '/',           label: 'My Bag',     icon: '🏌️', desc: 'Yardage overview' },
+  { href: '/',           label: 'Yardages',   icon: '🏌️', desc: 'Yardage overview' },
   { href: '/log',        label: 'Log Shot',   icon: '📍', desc: 'Record a distance' },
   { href: '/clubs',      label: 'Clubs',      icon: '🏒', desc: 'Manage your bag' },
   { href: '/dispersion', label: 'Dispersion', icon: '🎯', desc: 'Shot spread chart' },
