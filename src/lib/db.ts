@@ -48,6 +48,20 @@ export async function removeClubFromBag(clubId: string) {
   await supabase.from('bag').update({ is_active: false }).eq('club_id', clubId)
 }
 
+export async function getCustomClubs() {
+  const { data } = await supabase.from('custom_clubs').select('*').order('created_at')
+  return data ?? []
+}
+
+export async function addCustomClub(name: string, type: string) {
+  const { data } = await supabase.from('custom_clubs').insert({ name: name.trim(), type }).select().single()
+  return data
+}
+
+export async function deleteCustomClub(id: string) {
+  await supabase.from('custom_clubs').delete().eq('id', id)
+}
+
 export async function logShot(shot: {
   club_id: string
   shot_type: string

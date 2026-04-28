@@ -1,7 +1,16 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { getSettings, saveSettings } from '@/lib/db'
+import { getSettings, saveSettings, getCustomClubs, addCustomClub, deleteCustomClub } from '@/lib/db'
 import { Settings } from '@/lib/types'
+
+interface CustomClub { id: string; name: string; type: string }
+
+const CLUB_TYPES = [
+  { value: 'wood',   label: 'Wood' },
+  { value: 'hybrid', label: 'Hybrid' },
+  { value: 'iron',   label: 'Iron' },
+  { value: 'wedge',  label: 'Wedge' },
+]
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings | null>(null)
@@ -9,8 +18,17 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false)
   const [loading, setLoading] = useState(true)
 
+  const [customClubs, setCustomClubs] = useState<CustomClub[]>([])
+  const [newClubName, setNewClubName] = useState('')
+  const [newClubType, setNewClubType] = useState('iron')
+  const [addingClub, setAddingClub] = useState(false)
+
   useEffect(() => {
-    getSettings().then(s => { setSettings(s); setLoading(false) })
+    Promise.all([getSettings(), getCustomClubs()]).then(([s, cc]) => {
+      setSettings(s)
+      setCustomClubs(cc)
+      setLoading(false)
+    })
   }, [])
 
   async function handleSave() {
@@ -19,6 +37,20 @@ export default function SettingsPage() {
     await saveSettings(settings)
     setSaving(false); setSaved(true)
     setTimeout(() => setSaved(false), 2000)
+  }
+
+  async function handleAddClub() {
+    if (!newClubName.trim()) return
+    setAddingClub(true)
+    const club = await addCustomClub(newClubName, newClubType)
+    if (club) setCustomClubs(prev => [...prev, club])
+    setNewClubName('')
+    setAddingClub(false)
+  }
+
+  async function handleDeleteClub(id: string) {
+    await deleteCustomClub(id)
+    setCustomClubs(prev => prev.filter(c => c.id !== id))
   }
 
   function update(patch: Partial<Settings>) {
@@ -64,8 +96,8 @@ export default function SettingsPage() {
         <Section label="Averaging Method">
           <div className="space-y-2">
             {[
-              { value: 'all', label: 'All shots ever' },
-              { value: 'last_n', label: 'Last N shots' },
+              { value: 'all',       label: 'All shots ever' },
+              { value: 'last_n',    label: 'Last N shots' },
               { value: 'longest_n', label: 'Longest N shots' },
             ].map(opt => (
               <button key={opt.value} onClick={() => update({ averaging_method: opt.value as Settings['averaging_method'] })}
@@ -79,7 +111,6 @@ export default function SettingsPage() {
               </button>
             ))}
           </div>
-
           {settings.averaging_method !== 'all' && (
             <div className="mt-4">
               <label className="text-text-secondary text-xs font-bold uppercase tracking-wider mb-2 block">N = {settings.averaging_count} shots</label>
@@ -99,6 +130,59 @@ export default function SettingsPage() {
             onChange={e => update({ min_shots_threshold: parseInt(e.target.value) })}
             className="w-full accent-golf-600" />
           <div className="flex justify-between text-text-muted text-xs mt-1"><span>1</span><span>20</span></div>
+        </Section>
+
+        {/* Custom Clubs */}
+        <Section label="Custom Clubs">
+          <p className="text-text-muted text-xs mb-3">Add clubs not in the standard list — they'll appear in Club Selection.</p>
+
+          {/* Add form */}
+          <div className="flex gap-2 mb-4">
+            <input
+              type="text"
+              value={newClubName}
+              onChange={e => setNewClubName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleAddClub()}
+              placeholder="Club name (e.g. 4 Hybrid)"
+              className="flex-1 bg-white border-2 border-border rounded-xl px-3 py-2.5 text-text-primary font-medium outline-none focus:border-golf-500 placeholder:text-text-muted text-sm"
+            />
+            <select
+              value={newClubType}
+              onChange={e => setNewClubType(e.target.value)}
+              className="bg-white border-2 border-border rounded-xl px-3 py-2.5 text-text-primary font-medium outline-none focus:border-golf-500 text-sm"
+            >
+              {CLUB_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+            </select>
+            <button
+              onClick={handleAddClub}
+              disabled={addingClub || !newClubName.trim()}
+              className="bg-golf-600 text-white rounded-xl px-4 py-2.5 font-bold text-sm disabled:opacity-40 hover:bg-golf-700 transition-colors whitespace-nowrap"
+            >
+              {addingClub ? '…' : '+ Add'}
+            </button>
+          </div>
+
+          {/* List */}
+          {customClubs.length === 0 ? (
+            <p className="text-text-muted text-sm text-center py-3">No custom clubs added yet</p>
+          ) : (
+            <div className="space-y-2">
+              {customClubs.map(club => (
+                <div key={club.id} className="flex items-center justify-between bg-surface-2 border border-border rounded-xl px-4 py-3">
+                  <div>
+                    <span className="text-text-primary font-semibold">{club.name}</span>
+                    <span className="text-text-muted text-xs ml-2 capitalize">{club.type}</span>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteClub(club.id)}
+                    className="text-red-400 hover:text-red-600 font-bold text-lg px-1 transition-colors"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </Section>
       </div>
 
