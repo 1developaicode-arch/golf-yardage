@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { getBag, getSettings, getShots, logShot } from '@/lib/db'
+import { getBag, getSettings, getShots, logShot, deleteShot } from '@/lib/db'
 import { BagEntry, Settings, Shot, ShotType } from '@/lib/types'
 import { convertDistance, unitLabel } from '@/lib/utils'
 
@@ -17,6 +17,7 @@ export default function LogPage() {
   const [dispRight, setDispRight] = useState('')
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [deleting, setDeleting] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -44,9 +45,19 @@ export default function LogPage() {
     setTimeout(() => setSuccess(false), 2000)
   }
 
+  async function handleDelete(id: string) {
+    setDeleting(id)
+    await deleteShot(id)
+    setShots(prev => prev.filter(s => s.id !== id))
+    setDeleting(null)
+  }
+
   if (loading) return <div className="flex-1 flex items-center justify-center text-text-muted">Loading...</div>
   if (!settings) return null
   const unit = unitLabel(settings.units)
+
+  // History filtered to selected club only
+  const clubHistory = shots.filter(s => s.club_id === selectedClub)
 
   return (
     <div className="p-4 md:p-0">
@@ -140,25 +151,40 @@ export default function LogPage() {
             </button>
           </div>
 
-          {/* History */}
+          {/* History — filtered to selected club */}
           <div className="md:w-96 md:flex-shrink-0 mt-2 md:mt-0">
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-text-secondary text-xs font-bold uppercase tracking-widest">History</span>
+              <span className="text-text-secondary text-xs font-bold uppercase tracking-widest">
+                {bag.find(b => b.club_id === selectedClub)?.club?.name ?? ''} History
+              </span>
               <div className="flex-1 h-px bg-border" />
+              <span className="text-text-muted text-xs">{clubHistory.length} shots</span>
             </div>
-            {shots.length === 0 ? (
-              <p className="text-text-muted text-sm text-center py-4">No shots logged yet</p>
+            {clubHistory.length === 0 ? (
+              <p className="text-text-muted text-sm text-center py-6">No shots logged for this club yet</p>
             ) : (
               <div className="space-y-2 md:max-h-[calc(100vh-160px)] md:overflow-y-auto">
-                {shots.slice(0, 50).map(shot => (
+                {clubHistory.map(shot => (
                   <div key={shot.id} className="bg-white border border-border rounded-xl px-4 py-3 flex items-center justify-between shadow-sm">
                     <div>
-                      <span className="text-text-primary font-bold">{shot.club?.name}</span>
-                      <span className="text-text-muted text-sm ml-2">{shot.shot_type}</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-golf-700 font-bold">{convertDistance(shot.distance_yards, settings.units)} {unit}</span>
+                      <span className="text-text-secondary font-semibold text-sm">{shot.shot_type}</span>
+                      {shot.dispersion_left != null && (
+                        <span className="text-text-muted text-xs ml-2">←{convertDistance(shot.dispersion_left, settings.units)}</span>
+                      )}
+                      {shot.dispersion_right != null && (
+                        <span className="text-text-muted text-xs ml-1">{convertDistance(shot.dispersion_right, settings.units)}→</span>
+                      )}
                       <p className="text-text-muted text-xs">{new Date(shot.created_at).toLocaleDateString()}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-golf-700 font-bold text-lg">{convertDistance(shot.distance_yards, settings.units)} {unit}</span>
+                      <button
+                        onClick={() => handleDelete(shot.id)}
+                        disabled={deleting === shot.id}
+                        className="text-red-400 hover:text-red-600 font-bold text-xl leading-none transition-colors disabled:opacity-40"
+                      >
+                        {deleting === shot.id ? '…' : '×'}
+                      </button>
                     </div>
                   </div>
                 ))}

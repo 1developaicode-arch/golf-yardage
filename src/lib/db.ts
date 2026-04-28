@@ -62,6 +62,10 @@ export async function deleteCustomClub(id: string) {
   await supabase.from('custom_clubs').delete().eq('id', id)
 }
 
+export async function deleteShot(id: string) {
+  await supabase.from('shots').delete().eq('id', id)
+}
+
 export async function logShot(shot: {
   club_id: string
   shot_type: string

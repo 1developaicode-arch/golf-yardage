@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { getBag, getSettings, getShots } from '@/lib/db'
 import { BagEntry, Settings, Shot } from '@/lib/types'
+import { convertDistance } from '@/lib/utils'
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer } from 'recharts'
 
 export default function DispersionPage() {
@@ -33,13 +34,38 @@ export default function DispersionPage() {
   }
 
   const unit = settings.units === 'meters' ? 'm' : 'yds'
-  const clubShots = shots.filter(s => s.club_id === selectedClub && s.dispersion_left !== null && s.dispersion_right !== null)
-  const chartData = clubShots.map(s => ({
-    x: (s.dispersion_right ?? 0) - (s.dispersion_left ?? 0),
-    y: settings.units === 'meters' ? Math.round(s.distance_yards * 0.9144) : Math.round(s.distance_yards),
-  }))
-  const avgLeft = clubShots.length > 0 ? (clubShots.reduce((a, s) => a + (s.dispersion_left ?? 0), 0) / clubShots.length).toFixed(1) : '–'
-  const avgRight = clubShots.length > 0 ? (clubShots.reduce((a, s) => a + (s.dispersion_right ?? 0), 0) / clubShots.length).toFixed(1) : '–'
+  const threshold = settings.min_shots_threshold
+
+  // Shots for selected club that have at least one dispersion value
+  const clubDispShots = shots.filter(s =>
+    s.club_id === selectedClub &&
+    (s.dispersion_left != null || s.dispersion_right != null)
+  )
+
+  const hasEnough = clubDispShots.length >= threshold
+
+  const chartData = clubDispShots.map(s => {
+    const left = s.dispersion_left ?? 0
+    const right = s.dispersion_right ?? 0
+    const dist = settings.units === 'meters'
+      ? Math.round(s.distance_yards * 0.9144)
+      : Math.round(s.distance_yards)
+    return {
+      x: right - left,   // negative = left of target, positive = right
+      y: dist,
+      left: convertDistance(left, settings.units),
+      right: convertDistance(right, settings.units),
+    }
+  })
+
+  const avgLeft = clubDispShots.length > 0
+    ? (clubDispShots.reduce((a, s) => a + (s.dispersion_left ?? 0), 0) / clubDispShots.length)
+    : null
+  const avgRight = clubDispShots.length > 0
+    ? (clubDispShots.reduce((a, s) => a + (s.dispersion_right ?? 0), 0) / clubDispShots.length)
+    : null
+
+  const selectedClubName = bag.find(b => b.club_id === selectedClub)?.club?.name ?? ''
 
   return (
     <div className="p-4 md:p-0">
@@ -48,6 +74,7 @@ export default function DispersionPage() {
         <p className="text-text-muted text-sm">Shot spread by club</p>
       </div>
 
+      {/* Club selector */}
       <div className="mb-5">
         <label className="text-text-secondary text-xs font-bold uppercase tracking-wider mb-2 block">Club</label>
         <div className="flex flex-wrap gap-2">
@@ -64,48 +91,76 @@ export default function DispersionPage() {
         </div>
       </div>
 
-      {clubShots.length > 0 && (
-        <div className="grid grid-cols-3 gap-3 mb-5">
-          {[
-            { label: 'Avg Left', value: `${avgLeft} ${unit}` },
-            { label: 'Shots', value: clubShots.length },
-            { label: 'Avg Right', value: `${avgRight} ${unit}` },
-          ].map(stat => (
-            <div key={stat.label} className="bg-white border border-border rounded-2xl p-3 text-center shadow-sm">
-              <p className="text-text-muted text-xs mb-1">{stat.label}</p>
-              <p className="text-text-primary font-bold">{stat.value}</p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {clubShots.length === 0 ? (
+      {/* Not enough shots yet */}
+      {clubDispShots.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-4xl mb-3">📊</p>
-          <p className="font-semibold text-text-primary">No dispersion data yet</p>
-          <p className="text-sm mt-1 text-text-muted">Log shots with left/right values to see your pattern</p>
+          <p className="font-semibold text-text-primary">No dispersion data for {selectedClubName}</p>
+          <p className="text-sm mt-1 text-text-muted">Log shots with left/right dispersion values to see your pattern</p>
+        </div>
+      ) : !hasEnough ? (
+        <div className="text-center py-16">
+          <p className="text-4xl mb-3">⏳</p>
+          <p className="font-semibold text-text-primary">{clubDispShots.length} of {threshold} shots logged</p>
+          <p className="text-sm mt-1 text-text-muted">
+            {threshold - clubDispShots.length} more shot{threshold - clubDispShots.length !== 1 ? 's' : ''} with dispersion needed to show the chart
+          </p>
+          <div className="mt-4 max-w-xs mx-auto bg-white border border-border rounded-full h-3 overflow-hidden shadow-sm">
+            <div
+              className="h-full bg-golf-500 rounded-full transition-all"
+              style={{ width: `${Math.round((clubDispShots.length / threshold) * 100)}%` }}
+            />
+          </div>
         </div>
       ) : (
-        <div className="bg-white border border-border rounded-2xl p-4 shadow-sm">
-          <p className="text-text-secondary text-xs font-bold uppercase tracking-wider mb-4 text-center">
-            Lateral Spread (← Left / Right →)
-          </p>
-          <ResponsiveContainer width="100%" height={300}>
-            <ScatterChart margin={{ top: 10, right: 20, bottom: 20, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#c8deca" />
-              <XAxis type="number" dataKey="x" name="Lateral" unit={unit}
-                tick={{ fill: '#3a6b42', fontSize: 11 }}
-                label={{ value: `← Left / Right → (${unit})`, position: 'insideBottom', offset: -10, fill: '#3a6b42', fontSize: 11 }} />
-              <YAxis type="number" dataKey="y" name="Distance" unit={unit} tick={{ fill: '#3a6b42', fontSize: 11 }} />
-              <Tooltip
-                contentStyle={{ background: '#fff', border: '1px solid #c8deca', borderRadius: 8, color: '#0a1f0d' }}
-                formatter={(val, name) => [`${val} ${unit}`, name === 'x' ? 'Lateral' : 'Distance']}
-              />
-              <ReferenceLine x={0} stroke="#019428" strokeDasharray="4 4" />
-              <Scatter data={chartData} fill="#d4900a" opacity={0.85} />
-            </ScatterChart>
-          </ResponsiveContainer>
-        </div>
+        <>
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-3 mb-5">
+            <div className="bg-white border border-border rounded-2xl p-3 text-center shadow-sm">
+              <p className="text-text-muted text-xs mb-1">Avg Left</p>
+              <p className="text-text-primary font-bold">{avgLeft != null ? `${convertDistance(avgLeft, settings.units)} ${unit}` : '–'}</p>
+            </div>
+            <div className="bg-white border border-border rounded-2xl p-3 text-center shadow-sm">
+              <p className="text-text-muted text-xs mb-1">Shots</p>
+              <p className="text-text-primary font-bold">{clubDispShots.length}</p>
+            </div>
+            <div className="bg-white border border-border rounded-2xl p-3 text-center shadow-sm">
+              <p className="text-text-muted text-xs mb-1">Avg Right</p>
+              <p className="text-text-primary font-bold">{avgRight != null ? `${convertDistance(avgRight, settings.units)} ${unit}` : '–'}</p>
+            </div>
+          </div>
+
+          {/* Chart */}
+          <div className="bg-white border border-border rounded-2xl p-4 shadow-sm">
+            <p className="text-text-secondary text-xs font-bold uppercase tracking-wider mb-4 text-center">
+              {selectedClubName} — Lateral Spread (← Left / Right →)
+            </p>
+            <ResponsiveContainer width="100%" height={320}>
+              <ScatterChart margin={{ top: 10, right: 20, bottom: 30, left: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#c8deca" />
+                <XAxis
+                  type="number" dataKey="x" name="Lateral" unit={unit}
+                  tick={{ fill: '#3a6b42', fontSize: 11 }}
+                  label={{ value: `← Left    Right → (${unit})`, position: 'insideBottom', offset: -15, fill: '#3a6b42', fontSize: 11 }}
+                />
+                <YAxis
+                  type="number" dataKey="y" name="Distance" unit={unit}
+                  tick={{ fill: '#3a6b42', fontSize: 11 }}
+                  label={{ value: `Distance (${unit})`, angle: -90, position: 'insideLeft', offset: 10, fill: '#3a6b42', fontSize: 11 }}
+                />
+                <Tooltip
+                  contentStyle={{ background: '#fff', border: '1px solid #c8deca', borderRadius: 8, color: '#0a1f0d' }}
+                  formatter={(val, name) => {
+                    if (name === 'x') return [`${val} ${unit}`, 'Lateral']
+                    return [`${val} ${unit}`, 'Distance']
+                  }}
+                />
+                <ReferenceLine x={0} stroke="#019428" strokeWidth={2} strokeDasharray="4 4" label={{ value: 'Target', position: 'top', fill: '#019428', fontSize: 10 }} />
+                <Scatter data={chartData} fill="#d4900a" opacity={0.9} r={6} />
+              </ScatterChart>
+            </ResponsiveContainer>
+          </div>
+        </>
       )}
     </div>
   )
