@@ -11,8 +11,8 @@ export async function getBag() {
     .from('bag')
     .select('*, club:clubs(*)')
     .eq('is_active', true)
-    .order('clubs(sort_order)')
-  return data ?? []
+  const sorted = (data ?? []).sort((a, b) => (a.club?.sort_order ?? 0) - (b.club?.sort_order ?? 0))
+  return sorted
 }
 
 export async function getShots() {

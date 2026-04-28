@@ -66,7 +66,7 @@ export default function BagView() {
       <div className="flex items-center justify-between mb-5">
         <div>
           <h1 className="text-2xl font-bold text-white">My Bag</h1>
-          <p className="text-golf-500 text-sm">{bag.length} clubs</p>
+          <p className="text-golf-500 text-sm">{bag.length}/13 clubs</p>
         </div>
         <button onClick={() => setFullscreen(true)} className="bg-golf-800 border border-golf-600 text-golf-300 text-sm rounded-xl px-3 py-2 font-medium">
           ⛶ Fullscreen

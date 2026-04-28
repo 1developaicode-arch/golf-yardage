@@ -34,7 +34,7 @@ export default function ClubsPage() {
       await removeClubFromBag(club.id)
       setActiveIds(prev => { const s = new Set(prev); s.delete(club.id); return s })
     } else {
-      if (activeIds.size >= 14) { setSaving(null); return }
+      if (activeIds.size >= 13) { setSaving(null); return }
       await addClubToBag(club.id)
       setActiveIds(prev => new Set([...prev, club.id]))
     }
@@ -54,8 +54,8 @@ export default function ClubsPage() {
       <div className="mb-5">
         <h1 className="text-2xl font-bold text-white">Select Clubs</h1>
         <p className="text-golf-500 text-sm mt-1">
-          <span className={activeIds.size >= 14 ? 'text-gold-400 font-semibold' : 'text-golf-400'}>
-            {activeIds.size}/14
+          <span className={activeIds.size >= 13 ? 'text-gold-400 font-semibold' : 'text-golf-400'}>
+            {activeIds.size}/13
           </span>
           {' '}clubs selected
         </p>
@@ -70,7 +70,7 @@ export default function ClubsPage() {
           <div className="grid grid-cols-2 gap-2">
             {list.map(club => {
               const active = activeIds.has(club.id)
-              const disabled = !active && activeIds.size >= 14
+              const disabled = !active && activeIds.size >= 13
               return (
                 <button
                   key={club.id}

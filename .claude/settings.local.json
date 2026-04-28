@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Read(//Users/alex/.ssh/**)"
+      "Read(//Users/alex/.ssh/**)",
+      "Bash(SUPABASE_ACCESS_TOKEN=sbp_4ad225a66cf4ebcec125e90f697b67c94ed62a3c supabase db execute --sql \"SELECT * FROM bag LIMIT 5;\")"
     ]
   }
 }
