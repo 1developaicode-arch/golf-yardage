@@ -132,6 +132,39 @@ export default function SettingsPage() {
           <div className="flex justify-between text-text-muted text-xs mt-1"><span>1</span><span>20</span></div>
         </Section>
 
+        {/* Shot Type Labels */}
+        <Section label="Shot Type Labels">
+          <p className="text-text-muted text-xs mb-3">
+            Rename the 4 shot types to match your system — clock, percentage, or any text you prefer.
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            {([
+              { key: 'shot_label_full', placeholder: 'e.g. Full, 12 o\'clock, 100%' },
+              { key: 'shot_label_3q',   placeholder: 'e.g. 3/4, 9 o\'clock, 75%' },
+              { key: 'shot_label_half', placeholder: 'e.g. 1/2, 7:30, 50%' },
+              { key: 'shot_label_1q',   placeholder: 'e.g. 1/4, 6 o\'clock, 25%' },
+            ] as { key: keyof Settings; placeholder: string }[]).map(({ key, placeholder }) => (
+              <div key={key}>
+                <p className="text-text-muted text-xs mb-1">Shot {['1','2','3','4'][(['shot_label_full','shot_label_3q','shot_label_half','shot_label_1q'] as const).indexOf(key as never)]}</p>
+                <input
+                  type="text"
+                  value={settings[key] as string}
+                  onChange={e => update({ [key]: e.target.value })}
+                  placeholder={placeholder}
+                  maxLength={20}
+                  className="w-full bg-white border-2 border-border rounded-xl px-3 py-2.5 text-text-primary font-semibold outline-none focus:border-golf-500 placeholder:text-text-muted text-sm"
+                />
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() => update({ shot_label_full: 'Full', shot_label_3q: '3/4', shot_label_half: '1/2', shot_label_1q: '1/4' })}
+            className="mt-3 text-text-muted text-xs underline hover:text-text-secondary transition-colors"
+          >
+            Reset to defaults
+          </button>
+        </Section>
+
         {/* Custom Clubs */}
         <Section label="Custom Clubs">
           <p className="text-text-muted text-xs mb-3">Add clubs not in the standard list — they'll appear in Club Selection.</p>

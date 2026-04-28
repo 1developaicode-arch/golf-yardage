@@ -39,6 +39,19 @@ export interface Settings {
   averaging_method: AveragingMethod
   averaging_count: number
   min_shots_threshold: number
+  shot_label_full: string
+  shot_label_3q: string
+  shot_label_half: string
+  shot_label_1q: string
+}
+
+export function shotLabels(s: Settings): Record<ShotType, string> {
+  return {
+    'full': s.shot_label_full || 'Full',
+    '3/4':  s.shot_label_3q   || '3/4',
+    '1/2':  s.shot_label_half  || '1/2',
+    '1/4':  s.shot_label_1q   || '1/4',
+  }
 }
 
 export interface YardageSummary {

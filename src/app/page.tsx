@@ -3,8 +3,7 @@ import { useEffect, useState } from 'react'
 import { getBag, getSettings, getShots } from '@/lib/db'
 import { BagEntry, Settings, Shot, ShotType } from '@/lib/types'
 import { calcAverage, convertDistance, SHOT_TYPES, unitLabel } from '@/lib/utils'
-
-const SHOT_LABELS: Record<ShotType, string> = { 'full': 'Full', '3/4': '3/4', '1/2': '1/2', '1/4': '1/4' }
+import { shotLabels } from '@/lib/types'
 
 export default function BagView() {
   const [bag, setBag] = useState<BagEntry[]>([])
@@ -42,6 +41,7 @@ export default function BagView() {
 
   const clubs = bag.filter(b => b.club?.type !== 'wedge')
   const wedges = bag.filter(b => b.club?.type === 'wedge')
+  const labels = shotLabels(settings)
 
   if (fullscreen) {
     return (
@@ -55,7 +55,7 @@ export default function BagView() {
             ✕ Exit Fullscreen
           </button>
         </div>
-        <FullscreenTable entries={bag} shots={shots} settings={settings} getAvg={getAvg} isMatch={isMatch} unit={unit} />
+        <FullscreenTable entries={bag} shots={shots} settings={settings} getAvg={getAvg} isMatch={isMatch} unit={unit} labels={labels} />
       </div>
     )
   }
@@ -123,8 +123,8 @@ export default function BagView() {
             </div>
           ) : (
             <>
-              <ClubGroup label="Clubs" entries={clubs} shots={shots} settings={settings} getAvg={getAvg} isMatch={isMatch} unit={unit} />
-              <ClubGroup label="Wedges" entries={wedges} shots={shots} settings={settings} getAvg={getAvg} isMatch={isMatch} unit={unit} />
+              <ClubGroup label="Clubs" entries={clubs} shots={shots} settings={settings} getAvg={getAvg} isMatch={isMatch} unit={unit} labels={labels} />
+              <ClubGroup label="Wedges" entries={wedges} shots={shots} settings={settings} getAvg={getAvg} isMatch={isMatch} unit={unit} labels={labels} />
             </>
           )}
         </div>
@@ -133,10 +133,11 @@ export default function BagView() {
   )
 }
 
-function ClubGroup({ label, entries, getAvg, isMatch, unit, settings }: {
+function ClubGroup({ label, entries, getAvg, isMatch, unit, settings, labels }: {
   label: string; entries: BagEntry[]; shots: Shot[]; settings: Settings
   getAvg: (id: string, type: ShotType) => number | null
   isMatch: (avg: number | null) => boolean; unit: string
+  labels: Record<ShotType, string>
 }) {
   if (entries.length === 0) return null
   return (
@@ -152,7 +153,7 @@ function ClubGroup({ label, entries, getAvg, isMatch, unit, settings }: {
           <thead>
             <tr className="border-b border-border bg-surface-2">
               <th className="text-left px-5 py-3 text-text-secondary text-xs font-bold uppercase tracking-wider">Club</th>
-              {SHOT_TYPES.map(st => <th key={st} className="text-center px-5 py-3 text-text-secondary text-xs font-bold uppercase tracking-wider">{SHOT_LABELS[st]}</th>)}
+              {SHOT_TYPES.map(st => <th key={st} className="text-center px-5 py-3 text-text-secondary text-xs font-bold uppercase tracking-wider">{labels[st]}</th>)}
             </tr>
           </thead>
           <tbody>
@@ -181,15 +182,16 @@ function ClubGroup({ label, entries, getAvg, isMatch, unit, settings }: {
 
       {/* Mobile cards */}
       <div className="md:hidden space-y-2">
-        {entries.map(entry => <ClubCard key={entry.id} entry={entry} getAvg={getAvg} isMatch={isMatch} unit={unit} settings={settings} />)}
+        {entries.map(entry => <ClubCard key={entry.id} entry={entry} getAvg={getAvg} isMatch={isMatch} unit={unit} settings={settings} labels={labels} />)}
       </div>
     </div>
   )
 }
 
-function ClubCard({ entry, getAvg, isMatch, unit, settings }: {
+function ClubCard({ entry, getAvg, isMatch, unit, settings, labels }: {
   entry: BagEntry; getAvg: (id: string, type: ShotType) => number | null
   isMatch: (avg: number | null) => boolean; unit: string; settings: Settings
+  labels: Record<ShotType, string>
 }) {
   const club = entry.club!
   const anyMatch = SHOT_TYPES.some(st => isMatch(getAvg(club.id, st)))
@@ -206,7 +208,7 @@ function ClubCard({ entry, getAvg, isMatch, unit, settings }: {
           const display = avg !== null ? convertDistance(avg, settings.units) : null
           return (
             <div key={st} className={`rounded-xl p-2 text-center border ${match ? 'bg-gold-100 border-gold-400' : 'bg-surface-2 border-border'}`}>
-              <div className="text-text-muted text-xs mb-1">{SHOT_LABELS[st]}</div>
+              <div className="text-text-muted text-xs mb-1">{labels[st]}</div>
               <div className={`font-bold text-sm ${match ? 'text-gold-500' : display ? 'text-text-primary' : 'text-border-dark'}`}>{display ?? '–'}</div>
               {display && <div className="text-text-muted text-xs">{unit}</div>}
             </div>
@@ -217,10 +219,11 @@ function ClubCard({ entry, getAvg, isMatch, unit, settings }: {
   )
 }
 
-function FullscreenTable({ entries, getAvg, isMatch, unit, settings }: {
+function FullscreenTable({ entries, getAvg, isMatch, unit, settings, labels }: {
   entries: BagEntry[]; shots: Shot[]; settings: Settings
   getAvg: (id: string, type: ShotType) => number | null
   isMatch: (avg: number | null) => boolean; unit: string
+  labels: Record<ShotType, string>
 }) {
   const clubs = entries.filter(b => b.club?.type !== 'wedge')
   const wedges = entries.filter(b => b.club?.type === 'wedge')
@@ -235,7 +238,7 @@ function FullscreenTable({ entries, getAvg, isMatch, unit, settings }: {
                 <thead>
                   <tr className="border-b border-border bg-surface-2">
                     <th className="text-left px-5 py-3 text-text-secondary text-xs font-bold uppercase tracking-wider">Club</th>
-                    {SHOT_TYPES.map(st => <th key={st} className="text-center px-5 py-3 text-text-secondary text-xs font-bold uppercase tracking-wider">{SHOT_LABELS[st]}</th>)}
+                    {SHOT_TYPES.map(st => <th key={st} className="text-center px-5 py-3 text-text-secondary text-xs font-bold uppercase tracking-wider">{labels[st]}</th>)}
                   </tr>
                 </thead>
                 <tbody>

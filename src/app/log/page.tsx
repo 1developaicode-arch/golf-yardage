@@ -1,10 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { getBag, getSettings, getShots, logShot, deleteShot } from '@/lib/db'
-import { BagEntry, Settings, Shot, ShotType } from '@/lib/types'
-import { convertDistance, unitLabel } from '@/lib/utils'
-
-const SHOT_TYPES: ShotType[] = ['full', '3/4', '1/2', '1/4']
+import { BagEntry, Settings, Shot, ShotType, shotLabels } from '@/lib/types'
+import { convertDistance, unitLabel, SHOT_TYPES } from '@/lib/utils'
 
 export default function LogPage() {
   const [bag, setBag] = useState<BagEntry[]>([])
@@ -55,6 +53,7 @@ export default function LogPage() {
   if (loading) return <div className="flex-1 flex items-center justify-center text-text-muted">Loading...</div>
   if (!settings) return null
   const unit = unitLabel(settings.units)
+  const labels = shotLabels(settings)
 
   // History filtered to selected club only
   const clubHistory = shots.filter(s => s.club_id === selectedClub)
@@ -104,7 +103,7 @@ export default function LogPage() {
                         ? 'bg-golf-600 border-golf-600 text-white'
                         : 'bg-white border-border text-text-primary hover:border-golf-400'
                     }`}>
-                    {st}
+                    {labels[st]}
                   </button>
                 ))}
               </div>
@@ -167,7 +166,7 @@ export default function LogPage() {
                 {clubHistory.map(shot => (
                   <div key={shot.id} className="bg-white border border-border rounded-xl px-4 py-3 flex items-center justify-between shadow-sm">
                     <div>
-                      <span className="text-text-secondary font-semibold text-sm">{shot.shot_type}</span>
+                      <span className="text-text-secondary font-semibold text-sm">{labels[shot.shot_type]}</span>
                       {shot.dispersion_left != null && (
                         <span className="text-text-muted text-xs ml-2">←{convertDistance(shot.dispersion_left, settings.units)}</span>
                       )}
